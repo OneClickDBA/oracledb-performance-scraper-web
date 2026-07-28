@@ -29,8 +29,8 @@ grant create session to scraperuser;
 grant select_catalog_role to scraperuser;
 ```
 
-For more controlled grants, the native performance collectors and optional
-operational metric pack use these views:
+For more controlled grants, the native operational and performance collectors
+use these views:
 
 ```sql
 grant select on sys.dba_tablespace_usage_metrics to scraperuser;
@@ -102,12 +102,11 @@ Client:
 go build -tags goora -o oracledb_performance_scraper ./
 ```
 
-Install the binary and, optionally, the supplied operational metrics pack:
+Install the binary:
 
 ```bash
 sudo install -m 0755 oracledb_performance_scraper /usr/local/bin/oracledb_performance_scraper
 sudo mkdir -p /etc/oracledb-monitor /var/log/oracledb-monitor
-sudo cp oracle-operational-metrics.toml /etc/oracledb-monitor/oracle-operational-metrics.toml
 ```
 
 ## Minimal Configuration
@@ -128,8 +127,11 @@ databases:
 
 metrics:
   scrapeInterval: 15s
-  definitions:
-    - /etc/oracledb-monitor/oracle-operational-metrics.toml
+
+operational:
+  enabled: true
+  interval: 1m
+  queryTimeout: 10s
 
 performance:
   activity:
@@ -193,8 +195,6 @@ Type=simple
 User=oracledb-monitor
 Group=oracledb-monitor
 EnvironmentFile=/etc/oracledb-monitor/env
-# Match the Oracle database server operating-system time zone.
-Environment="ORA_SDTZ=Europe/Madrid"
 WorkingDirectory=/etc/oracledb-monitor
 ExecStart=/usr/local/bin/oracledb_performance_scraper --config.file=/etc/oracledb-monitor/config.yaml
 Restart=always
@@ -208,12 +208,13 @@ PrivateTmp=true
 WantedBy=multi-user.target
 ```
 
-Set `ORA_SDTZ` to the Oracle database server operating-system time-zone region,
-not necessarily the scraper server's time zone. Prefer a region such as
-`Europe/Madrid` over a fixed `+02:00` offset so daylight-saving changes remain
-correct. This process-level setting assumes the monitored databases use the
-same operating-system time zone; restart the service after changing it so all
-pooled Oracle sessions are recreated.
+Do not set one process-wide `ORA_SDTZ` when the scraper monitors databases in
+different server time zones. Godror can log a discrepancy warning when an
+Oracle session time zone differs from the database server operating-system time
+zone; for Oracle `DATE` values populated from `SYSDATE`, godror uses the server
+operating-system time zone. The scraper calculates its `GV$SQLSTATS`
+`LAST_ACTIVE_TIME` lookback from each database's own `SYSDATE`, so the warning
+does not require a global override.
 
 Create the service user and start the service:
 

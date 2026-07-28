@@ -28,8 +28,11 @@ databases:
 metrics:
   scrapeInterval: 15s
   connectionBackoff: 5m
-  definitions:
-    - /etc/oracledb-monitor/oracle-operational-metrics.toml
+
+operational:
+  enabled: true
+  interval: 1m
+  queryTimeout: 10s
 
 performance:
   activity:
@@ -94,7 +97,7 @@ metrics:
   scrapeInterval: 15s
   connectionBackoff: 5m
   definitions:
-    - /etc/oracledb-monitor/oracle-operational-metrics.toml
+    - /etc/oracledb-monitor/application-capacity-metrics.toml
     - /etc/oracledb-monitor/application-metrics.toml
 ```
 
@@ -104,18 +107,37 @@ metrics:
   connection. Defaults to `5m`.
 - `definitions`: Optional ordered list of TOML or YAML files containing
   additional SQL-derived metrics. Later files override duplicate generated
-  metric identifiers from earlier files. If omitted, only native performance
-  collectors run.
+  metric identifiers from earlier files. If omitted, native operational and
+  performance collectors still run.
 - `databaseLabel`: Label key used for generic metric samples. Defaults to
   `database`.
 
 Additional metric definitions are stored in `oracle_metric_samples`. Native
-Oracle performance collectors write to dedicated SQL, session, blocking, and
-DAH tables regardless of whether `definitions` is configured.
+operational and performance collectors write to dedicated typed tables
+regardless of whether `definitions` is configured.
 
 The removed pre-beta keys `default` and `custom` are rejected by strict YAML
 parsing. See [Additional Metrics](./additional-metrics.md) for migration and
 cardinality guidance.
+
+## Native Operational Configuration
+
+```yaml
+operational:
+  enabled: true
+  interval: 1m
+  queryTimeout: 10s
+```
+
+- `enabled`: Enable typed operational collection. Defaults to `true`.
+- `interval`: Minimum collection interval per Oracle database. Defaults to
+  `1m`.
+- `queryTimeout`: Timeout applied independently to each operational-domain
+  query. Defaults to `10s`.
+
+One domain failing does not discard rows returned by other domains. Every
+domain writes success, duration, sample count, and a bounded error message to
+`oracle_scrape_status`.
 
 ## Native Performance Configuration
 
@@ -205,8 +227,9 @@ output:
     databaseActivityTable: oracle_database_activity_samples
 ```
 
-`oracle_sql_texts` and `oracle_sql_plans` are derived from `sqlSamplesTable` and
-are created in the same PostgreSQL schema. For example,
+`oracle_sql_texts`, `oracle_sql_plans`, and all native operational tables and
+views are derived from `sqlSamplesTable` and created in the same PostgreSQL
+schema. For example,
 `monitoring.oracle_sql_samples` uses `monitoring.oracle_sql_texts` and
 `monitoring.oracle_sql_plans`.
 

@@ -22,6 +22,39 @@ docker-compose/grafana/dashboards/
 
 ## Included Dashboards
 
+### Oracle Operational Overview
+
+File:
+
+```text
+docker-compose/grafana/dashboards/oracle-operational-overview.json
+```
+
+Purpose:
+
+- Collector success, freshness, duration, and errors.
+- Database and instance state.
+- Session and process utilization.
+- Tablespace and ASM capacity.
+- Oracle resource-limit pressure.
+- Reset-aware system activity and wait-class rates.
+
+Primary tables:
+
+```text
+oracle_database_status_samples
+oracle_instance_samples
+oracle_resource_limit_samples
+oracle_tablespace_samples
+oracle_asm_diskgroup_samples
+oracle_system_counter_samples
+oracle_wait_class_samples
+oracle_scrape_status
+```
+
+The dashboard uses native typed operational data. It does not query
+`oracle_metric_samples`.
+
 ### Database Activity History (DAH)
 
 File:
@@ -98,9 +131,10 @@ docker-compose/grafana/dashboards/oracle-sql-top-consumers.json
 Purpose:
 
 - Top 20 SQL consumers by elapsed-time delta for the selected time range.
-- Elapsed, CPU, User I/O, application, concurrency, and cluster time breakdown.
-- Execution, row-processing, and parse-call deltas.
-- Buffer-get, disk-read, and direct-write deltas.
+- One-minute average database-time contribution for elapsed, CPU, User I/O,
+  application, concurrency, and cluster time.
+- One-minute average execution, row-processing, and parse-call rates.
+- One-minute average buffer-get, disk-read, and direct-write rates.
 - Category ranks and the dominant measured pressure for every top consumer.
 - Available plan hashes and cached execution-plan operations.
 - Complete `SQL_FULLTEXT` for the selected `SQL_ID`.
@@ -111,6 +145,30 @@ Select `PLAN_HASH_VALUE` when a statement has multiple collected plans. The
 plan panel displays the cached `GV$SQL_PLAN` operation tree, objects, optimizer
 estimates, partition bounds, and predicates; it does not contain runtime
 `ALLSTATS` values.
+
+Plan-operation colors identify access and join methods for visual scanning;
+they do not classify an operation as universally good or bad. Full application
+table scans and Cartesian joins are red, index access is green, hash joins are
+yellow, nested loops are blue, merge joins are orange, and sorts are purple.
+Oracle fixed-table scans are not treated as application-table full scans.
+
+The `review_signal` column highlights an initial investigation point:
+
+- `CARTESIAN`: the operation or options contain `CARTESIAN`.
+- `FULL SCAN`: a `TABLE ACCESS` operation has a `FULL` option.
+- `TEMP`: the optimizer estimates non-zero temporary space.
+- `HIGH ESTIMATE`: estimated cardinality is at least 100,000 rows, estimated
+  bytes are at least 100 MiB, or optimizer cost is at least 10,000.
+
+These are heuristics. Object size, selectivity, actual row counts, and workload
+frequency still determine whether an operation is a performance problem.
+
+The top table totals counter deltas over the selected dashboard range. Detail
+graphs first divide each delta by the actual interval between PostgreSQL
+samples, then average those rates into one-minute buckets. This avoids a
+misleading sawtooth when a cumulative Oracle counter changes less frequently
+than the scraper interval. A zero remains meaningful: no corresponding work
+completed during that observation interval.
 
 SQL text and plan details are collected on the bounded `performance.sqlPlans`
 schedule. A top consumer can therefore appear before its detail is collected,
@@ -167,6 +225,14 @@ The dashboards assume the scraper is writing these tables:
 - `oracle_sql_plans`
 - `oracle_session_samples`
 - `oracle_blocking_session_samples`
+- `oracle_database_status_samples`
+- `oracle_instance_samples`
+- `oracle_resource_limit_samples`
+- `oracle_tablespace_samples`
+- `oracle_asm_diskgroup_samples`
+- `oracle_system_counter_samples`
+- `oracle_wait_class_samples`
+- `oracle_scrape_status`
 
 If a dashboard is empty, verify:
 
@@ -174,3 +240,11 @@ If a dashboard is empty, verify:
 - PostgreSQL `output.postgresql.url` is correct.
 - the Oracle monitoring user can query the relevant `GV$` views.
 - Grafana time range includes recently collected rows.
+
+## Grafana Alerting
+
+The Docker Compose stack also provisions PostgreSQL-backed starter alert rules
+for collection freshness, Oracle connectivity, tablespaces, resource limits,
+and ASM. See [Grafana Alerting](../configuration/grafana-alerting.md) for rule
+deployment, contact points, and the required independent monitoring of the
+scraper, PostgreSQL, and Grafana themselves.

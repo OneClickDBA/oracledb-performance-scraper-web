@@ -5,7 +5,8 @@ sidebar_position: 2
 
 # Collection Model
 
-The scraper has native performance collection and optional additional metrics.
+The scraper has native operational and performance collection plus optional
+additional metrics.
 Database activity uses its own short sampling schedule so slower SQL, plan, and
 additional-metric queries cannot delay activity observations.
 
@@ -90,6 +91,42 @@ When PostgreSQL retention is enabled, SQL text and plan operations are deleted
 only after their last known reference is older than the oldest retained daily
 partition. When retention is disabled, lookup-table cleanup is also disabled.
 
+## Native Operational Collection
+
+Operational collection is enabled by default and runs at a slower cadence than
+activity sampling:
+
+```yaml
+operational:
+  enabled: true
+  interval: 1m
+  queryTimeout: 10s
+```
+
+It replaces the former `oracle-operational-metrics.toml` definition pack.
+Known operational domains are stored in typed, daily-partitioned tables rather
+than JSON labels in `oracle_metric_samples`:
+
+| PostgreSQL table | Collected data |
+| --- | --- |
+| `oracle_database_status_samples` | Instance/database status, role, open mode, startup time, container, and platform |
+| `oracle_instance_samples` | Session/process counts and selected CPU, SGA, and PGA limits |
+| `oracle_resource_limit_samples` | Current, maximum, and configured Oracle resource utilization |
+| `oracle_tablespace_samples` | Permanent and temporary tablespace capacity |
+| `oracle_asm_diskgroup_samples` | ASM total, free, and usable capacity |
+| `oracle_system_counter_samples` | Selected cumulative `GV$SYSSTAT` counters and reset-aware interval deltas |
+| `oracle_wait_class_samples` | Cumulative wait-class time and reset-aware interval deltas |
+| `oracle_system_metric_samples` | Selected bounded `GV$CON_SYSMETRIC` values |
+| `oracle_scrape_status` | Connectivity and collector success, duration, row count, and errors |
+
+The scraper keeps in-memory baselines for cumulative counters. The first sample
+after startup has no delta. A lower subsequent value is marked as a counter
+reset instead of producing a negative rate.
+
+Views including `oracle_latest_scrape_status`,
+`oracle_latest_tablespace_samples`, `oracle_system_counter_rates`, and
+`oracle_wait_class_rates` provide stable inputs for dashboards and alerts.
+
 ## Additional Metrics
 
 Additional metrics are optional SQL-derived measurements loaded from TOML or
@@ -99,7 +136,6 @@ YAML definition files:
 metrics:
   scrapeInterval: 15s
   definitions:
-    - /etc/oracledb-monitor/oracle-operational-metrics.toml
     - /etc/oracledb-monitor/application-metrics.toml
 ```
 
@@ -110,20 +146,14 @@ oracle_metric_samples
 ```
 
 No additional metrics are collected when `metrics.definitions` is empty or
-omitted. Native performance collection continues normally.
-
-The project supplies `oracle-operational-metrics.toml` as an optional starting
-pack. It contains bounded operational measurements such as session counts,
-resource limits, ASM capacity, activity counters, process counts, wait-class
-time, tablespace usage, selected database parameters, platform information,
-and cache hit ratios. It is not an embedded fallback and is used only when its
-path is listed under `metrics.definitions`.
+omitted. Native operational and performance collection continues normally.
+The generic table is reserved for user-defined additional metrics.
 
 ## Choosing A Storage Model
 
-Use `oracle_metric_samples` when the result is naturally a numeric measurement
-with a bounded set of dimensions. Examples include tablespace utilization by
-tablespace, process counts by instance, or resource limits by resource name.
+Use `oracle_metric_samples` when a user-defined result is naturally a numeric
+measurement with a bounded set of dimensions. Native tablespace, process, wait,
+and resource measurements already have dedicated typed tables.
 
 Use a dedicated collector and typed table when rows identify diagnostic
 entities, dimensions grow without a practical bound, or dashboards need to

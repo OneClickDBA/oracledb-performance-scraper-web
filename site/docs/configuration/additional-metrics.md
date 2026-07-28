@@ -25,12 +25,11 @@ metrics:
   scrapeInterval: 15s
   connectionBackoff: 5m
   definitions:
-    - /etc/oracledb-monitor/oracle-operational-metrics.toml
     - /etc/oracledb-monitor/application-metrics.toml
 ```
 
-The list is optional. If it is absent or empty, the scraper collects only its
-native SQL, session, blocking, and database activity samples.
+The list is optional. If it is absent or empty, native operational and
+performance collection continues normally.
 
 Files are loaded in list order. If multiple files generate the same internal
 metric identifier, the definition from the last file wins. All listed files are
@@ -41,22 +40,16 @@ The pre-beta configuration keys `metrics.default` and `metrics.custom` have
 been removed. Strict configuration parsing rejects them; replace both with one
 ordered `metrics.definitions` list.
 
-## Supplied Operational Pack
+## Native Operational Metrics
 
-`oracle-operational-metrics.toml` is an optional project-supplied definition
-file. It is included in container images and release archives but is not loaded
-automatically. Add it to `metrics.definitions` when those measurements are
-useful.
+Database state, instance utilization, resource limits, tablespaces, ASM,
+system counters, wait classes, system ratios, and collection health are native
+typed datasets. They are configured under `operational:` and are not additional
+metric definitions.
 
-The equivalent `oracle-operational-metrics.yaml` file is provided as a format
-example. Normally, configure one format or the other, not both, because they
-define the same metrics.
-
-The operational pack intentionally excludes the inherited generic `top_sql`
-metric. SQL ID, SQL text, child cursor, plan, and execution statistics already
-belong to the native SQL performance collector, which writes statistics to
-`oracle_sql_samples`, normalized full text to `oracle_sql_texts`, and cached
-cursor-plan operations to `oracle_sql_plans` for the SQL Performance dashboard.
+The former pre-beta `oracle-operational-metrics.toml` and YAML files were
+removed to prevent the same values being written a second time to
+`oracle_metric_samples`.
 
 ## Metric Schema
 
@@ -114,13 +107,11 @@ order by collected_at desc;
 
 ## Cardinality Guidance
 
-Good candidates have a naturally bounded set of label combinations:
+Good user-defined candidates have a naturally bounded set of label combinations:
 
-- instance and session status counts;
-- tablespace capacity by tablespace;
-- resource utilization by resource name;
 - application queue depth by a controlled queue name;
-- wait-class totals by Oracle's finite wait classes.
+- business transaction counts by a controlled application status;
+- application-specific capacity that is not part of native collection.
 
 Definitions require additional review when labels contain tenant, application,
 object, service, or other values that can grow continually. Estimate storage as
@@ -154,24 +145,18 @@ Set `databases = []` to disable a definition without deleting it.
 
 ```yaml
 metrics:
-  - context: sessions
-    labels: [inst_id, status, type]
+  - context: application_queue
+    labels: [queue_name]
     metricsdesc:
-      value: Session count by instance, status, and type.
+      pending: Messages waiting for processing.
     request: |
-      select inst_id, status, type, count(*) as value
-      from gv$session
-      group by inst_id, status, type
+      select queue_name, count(*) as pending
+      from application_queue
+      where processed = 0
+      group by queue_name
 ```
 
 ## Container Images
 
-The supplied operational TOML file is available at:
-
-```text
-/oracle-operational-metrics.toml
-```
-
-Mount user-defined files and list all desired paths under
-`metrics.definitions`. A missing or invalid definition file is reported in the
-scraper log.
+Mount user-defined files and list their paths under `metrics.definitions`. A
+missing or invalid definition file is reported in the scraper log.

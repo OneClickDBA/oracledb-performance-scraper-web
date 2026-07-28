@@ -43,8 +43,11 @@ databases:
 
 metrics:
   scrapeInterval: 15s
-  definitions:
-    - /oracle-operational-metrics.toml
+
+operational:
+  enabled: true
+  interval: 1m
+  queryTimeout: 10s
 
 performance:
   sqlPlans:

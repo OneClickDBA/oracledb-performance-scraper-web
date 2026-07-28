@@ -9,17 +9,42 @@ List of upcoming and historic changes to the scraper.
 
 ### Next, TBD
 
+- Promote standard Oracle operational measurements from the optional generic
+  definition pack into default-enabled native collectors and typed,
+  daily-partitioned PostgreSQL tables for database state, instance load,
+  resource limits, tablespaces, ASM, system counters, wait classes, and system
+  metrics.
+- Add reset-aware interval deltas and stable PostgreSQL rate/latest-state views
+  for efficient Grafana dashboards and alert evaluation.
+- Persist per-database connectivity and collector success, duration, sample
+  count, and errors in `oracle_scrape_status`, including failed scrapes that
+  produce no Oracle measurements.
+- Add an Oracle Operational Overview dashboard and provisioned Grafana alerts
+  for stale collection, connectivity, tablespace, resource-limit, and ASM
+  pressure without requiring Prometheus.
+- Document the critical requirement for an independent external availability
+  check of the scraper, PostgreSQL, Grafana, and notification path, because a
+  failed monitoring stack cannot alert on its own failure.
+- Remove the superseded `oracle-operational-metrics.toml` and YAML files from
+  images and release archives; `oracle_metric_samples` remains available only
+  for user-defined additional metrics.
 - Rank bounded SQL text and plan candidates by elapsed-time deltas accumulated
   from frequent `GV$SQLSTATS` samples instead of cumulative cursor lifetime,
   combining RAC instances and plan hashes by SQL ID.
 - Split SQL troubleshooting into a four-category Oracle SQL Performance
   overview and a linked Oracle SQL Top Consumers dashboard with top-20 ranking,
-  detailed time, workload and I/O graphs with fixed series colors and smooth
-  DAH-style area rendering, full SQL text, and cached plans.
+  detailed time, workload and I/O graphs with fixed series colors, smooth
+  DAH-style area rendering, and one-minute rate averaging that removes
+  counter-update sawteeth without changing the stored samples. Include full SQL
+  text and cached plans in the same drilldown.
+- Add deterministic access, join, and sort colors to the Top Consumers
+  execution-plan table, plus review signals for full scans, Cartesian joins,
+  temporary-space estimates, and unusually large optimizer estimates.
 - Serialize additional metric queries per database to prevent simultaneous OCI
   connection creation when pooled connections reach their maximum lifetime.
-- Document `ORA_SDTZ` in the systemd service configuration so godror sessions
-  can use the Oracle database server time zone.
+- Calculate the `GV$SQLSTATS.LAST_ACTIVE_TIME` lookback from each monitored
+  database's `SYSDATE`, avoiding cross-time-zone SQL collection gaps, and remove
+  the unsafe process-wide `ORA_SDTZ` recommendation for multi-database setups.
 - Remove redundant source-database columns from Grafana table panels while
   retaining the dashboard-level database filters and internal query joins.
 - Make Oracle ASH collection explicitly opt-in and default activity analytics
