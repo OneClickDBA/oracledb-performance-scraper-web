@@ -15,7 +15,7 @@ const config: Config = {
     v4 : true, // Improve compatibility with the upcoming Docusaurus v4
   },
 
-  url : 'https://dodger-one.github.io',
+  url : 'https://oneclickdba.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl : '/oracledb-performance-scraper-web/',
@@ -24,7 +24,7 @@ const config: Config = {
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName : 'dodger-one',
+  organizationName : 'OneClickDBA',
   projectName : 'oracledb-performance-scraper-web',
 
   onBrokenLinks : 'throw',
@@ -51,7 +51,7 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl :
-              'https://github.com/dodger-one/oracledb-performance-scraper/tree/main/site/',
+              'https://github.com/OneClickDBA/oracledb-performance-scraper-web/tree/main/site/',
         },
         theme : {
           customCss : './src/css/custom.css',
@@ -82,7 +82,7 @@ const config: Config = {
           position : 'left',
         },
         {
-          href : 'https://github.com/dodger-one/oracledb-performance-scraper',
+          href : 'https://github.com/OneClickDBA/oracledb-performance-scraper',
           label : 'GitHub',
           position : 'right',
           className : 'navbar-github-button',
@@ -113,7 +113,7 @@ const config: Config = {
             {
               label : 'GitHub Issue tracking',
               href :
-                  'https://github.com/dodger-one/oracledb-performance-scraper/issues',
+                  'https://github.com/OneClickDBA/oracledb-performance-scraper/issues',
             },
           ],
         },
@@ -128,7 +128,7 @@ const config: Config = {
             {
               label : 'GitHub',
               href :
-                  'https://github.com/dodger-one/oracledb-performance-scraper',
+                  'https://github.com/OneClickDBA/oracledb-performance-scraper',
             },
           ],
         },

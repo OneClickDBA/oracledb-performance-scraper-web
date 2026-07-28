@@ -51,7 +51,7 @@ function HomepageHeader() {
             </Link>
             <a
               className={styles.secondaryAction}
-              href="https://github.com/dodger-one/oracledb-performance-scraper"
+              href="https://github.com/OneClickDBA/oracledb-performance-scraper"
               target="_blank"
               rel="noopener noreferrer">
               <Code2 size={18} aria-hidden="true" />
