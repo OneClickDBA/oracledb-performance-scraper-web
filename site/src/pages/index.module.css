@@ -164,8 +164,12 @@
   color: #f5b82e;
 }
 
+.checkIcon svg {
+  display: block;
+}
+
 .benefitList strong,
-.benefitList span {
+.benefitList div > span {
   display: block;
 }
 
@@ -546,7 +550,7 @@
     grid-template-columns: 70px minmax(0, 1fr) auto;
   }
 
-  .ctaLink {
+  .ctaButton {
     grid-column: 2 / -1;
     justify-self: start;
   }

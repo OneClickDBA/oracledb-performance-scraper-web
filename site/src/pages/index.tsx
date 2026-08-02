@@ -45,10 +45,6 @@ function HomepageHeader() {
             then visualize with Grafana or query directly with SQL.
           </p>
           <div className={styles.heroActions}>
-            <Link className={styles.primaryAction} to="/docs/intro">
-              <BookOpen size={18} aria-hidden="true" />
-              Read the documentation
-            </Link>
             <a
               className={styles.secondaryAction}
               href="https://github.com/OneClickDBA/harry-performance-scraper"
@@ -57,6 +53,10 @@ function HomepageHeader() {
               <Code2 size={18} aria-hidden="true" />
               View on GitHub
             </a>
+            <Link className={styles.primaryAction} to="/docs/intro">
+              <BookOpen size={18} aria-hidden="true" />
+              Read the documentation
+            </Link>
           </div>
         </div>
 
@@ -188,13 +188,13 @@ function DocumentationCta() {
           <Heading as="h2">Ready to start digging?</Heading>
           <p>Get started in minutes and build your performance history.</p>
         </div>
-        <Link className={styles.ctaButton} to="/docs/getting-started/basics">
-          View quickstart guide
-          <ArrowRight size={18} aria-hidden="true" />
-        </Link>
         <Link className={styles.ctaLink} to="/docs/intro">
           See all documentation
           <ArrowRight size={16} aria-hidden="true" />
+        </Link>
+        <Link className={styles.ctaButton} to="/docs/getting-started/basics">
+          View quickstart guide
+          <ArrowRight size={18} aria-hidden="true" />
         </Link>
       </div>
     </section>

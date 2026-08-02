@@ -40,6 +40,7 @@
 .navbar__logo {
   width: 48px;
   height: 48px;
+  margin-right: var(--ifm-navbar-padding-horizontal);
 }
 
 .navbar__logo img {
@@ -71,8 +72,19 @@
   color: #20242a;
 }
 
+.navbar__items--right > [class*='colorModeToggle_'] {
+  margin-left: var(--ifm-navbar-padding-horizontal);
+}
+
 .navbar-sidebar {
   background: #350303;
+}
+
+.navbar-sidebar__brand > [class*='toggle_'] {
+  min-width: 2rem;
+  min-height: 2rem;
+  flex: 0 0 2rem;
+  aspect-ratio: 1;
 }
 
 .navbar-sidebar .menu__link,
