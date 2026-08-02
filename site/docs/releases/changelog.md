@@ -20,6 +20,9 @@ List of upcoming and historic changes to the scraper.
   container images, Go module, Kubernetes objects, configuration paths, Oracle
   client identifier, Grafana alert labels, and release archives.
 - Rename the default PostgreSQL database and role to `harry_monitoring`.
+- Replace the unavailable Oracle attribution-helper process with a reproducible
+  `go-licenses` pipeline that generates notices for every released driver and
+  operating-system variant and verifies the committed inventory in CI.
 - Promote standard Oracle operational measurements from the optional generic
   definition pack into default-enabled native collectors and typed,
   daily-partitioned PostgreSQL tables for database state, instance load,
