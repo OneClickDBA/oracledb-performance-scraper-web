@@ -143,13 +143,12 @@ const config: Config = {
           items : [
             {
               label : 'OneClickDBA',
-              to : 'https://oneclickdba.com/',
+              to : 'https://oneclickdba.com/harry/',
             },
             {label : 'dodger-one CV', to : 'https://cv.ciberterminal.net'},
             {
               label : 'GitHub',
-              href :
-                  'https://github.com/OneClickDBA/harry-performance-scraper',
+              href : 'https://github.com/OneClickDBA/harry-performance-scraper',
             },
           ],
         },
