@@ -101,7 +101,8 @@ leader election.
 
 ## PostgreSQL Split-Brain Protection
 
-:::danger PostgreSQL fencing is mandatory
+:::danger
+PostgreSQL fencing is mandatory
 
 Harry uses PostgreSQL as its source of leadership. Advisory locks guarantee a
 single Harry leader only while the PostgreSQL HA system guarantees a single
