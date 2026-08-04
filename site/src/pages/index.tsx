@@ -19,12 +19,12 @@ const benefits = [
     description: 'Correlate waits, SQL, sessions, blocking and more.',
   },
   {
-    title: 'Built for Grafana',
-    description: 'Powerful dashboards backed directly by PostgreSQL.',
+    title: 'Grafana-native alerting',
+    description: 'Create alerts directly from Harry’s PostgreSQL data using Grafana’s native alerting support.',
   },
   {
-    title: 'Open and extensible',
-    description: 'FOSS core. Extend, integrate and build your own.',
+    title: 'Native high availability',
+    description: 'Deploy multiple Harry instances with automatic leader election and failover.',
   },
 ];
 

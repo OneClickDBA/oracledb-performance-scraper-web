@@ -1,11 +1,11 @@
 import type {ComponentType, ReactNode} from 'react';
 import type {LucideProps} from 'lucide-react';
 import {
-  Box,
+  BellRing,
   ChartNoAxesCombined,
   Clock3,
   Database,
-  Puzzle,
+  Network,
   ShieldCheck,
 } from 'lucide-react';
 import Heading from '@theme/Heading';
@@ -34,19 +34,19 @@ const features: FeatureItem[] = [
     description: 'Correlate events and find root causes in seconds.',
   },
   {
-    title: 'PostgreSQL powered',
+    title: 'PostgreSQL-powered',
     Icon: Database,
     description: 'Your data, your queries, with no proprietary lock-in.',
   },
   {
-    title: 'Open and extensible',
-    Icon: Puzzle,
-    description: 'FOSS core with plugins and custom dashboards.',
+    title: 'Grafana-native alerting',
+    Icon: BellRing,
+    description: 'Alert directly from Harry’s PostgreSQL data with Grafana.',
   },
   {
-    title: 'Deploy anywhere',
-    Icon: Box,
-    description: 'Linux service, Docker, Compose or Kubernetes.',
+    title: 'Native high availability',
+    Icon: Network,
+    description: 'Leader election and automatic failover across replicas.',
   },
 ];
 
