@@ -5,8 +5,8 @@ sidebar_position: 3
 
 # Kubernetes
 
-The scraper needs outbound network access to Oracle and PostgreSQL. It exposes a
-health endpoint on port `9161` for probes and operational checks.
+The scraper needs outbound network access to Oracle and PostgreSQL. It exposes
+liveness and leadership-readiness endpoints on port `9161`.
 
 The examples below assume a namespace named `scraper`.
 
@@ -55,6 +55,10 @@ performance:
     interval: 2m
     topN: 20
     queryTimeout: 10s
+
+highAvailability:
+  enabled: true
+  scope: default
 
 output:
   postgresql:
@@ -109,6 +113,12 @@ The container command should run:
 Use a non-root user, a read-only root filesystem, and writable temporary/log
 volumes as appropriate for your cluster.
 
+Harry HA permits multiple replicas. All replicas intended for the same workload
+must use the same PostgreSQL database and `highAvailability.scope`. Only the
+leader opens Oracle pools and collects; standbys remain live while unready. See
+[High Availability](../configuration/high-availability.md), including its
+PostgreSQL split-brain and fencing requirements, before increasing `replicas`.
+
 ## Service
 
 Expose port `9161` only for health checks or operational access:
@@ -126,6 +136,21 @@ Health check:
 kubectl port-forward svc/harry-scraper 9161:9161 -n scraper
 curl http://127.0.0.1:9161/healthz
 ```
+
+Configure separate probes:
+
+```yaml
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 9161
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: 9161
+```
+
+Do not use `/readyz` for liveness because a standby is intentionally unready.
 
 ## Grafana
 

@@ -45,6 +45,12 @@ performance:
     topN: 20
     queryTimeout: 10s
 
+highAvailability:
+  enabled: true
+  scope: default
+  retryInterval: 5s
+  validationInterval: 2s
+
 output:
   postgresql:
     url: ${POSTGRES_URL}
@@ -192,6 +198,29 @@ refreshed safely through PostgreSQL upsert semantics. A selected cursor that
 ages out of Oracle before the detail pass can have statistics without available
 text or plan rows.
 
+## High Availability
+
+PostgreSQL-backed leader election is enabled by default, even when the section
+is omitted:
+
+```yaml
+highAvailability:
+  enabled: true
+  scope: default
+  retryInterval: 5s
+  validationInterval: 2s
+```
+
+- `enabled`: Gate all Oracle collection behind PostgreSQL leadership. Defaults
+  to `true`.
+- `scope`: Election-group name. Defaults to `default`.
+- `retryInterval`: Standby retry delay. Defaults to `5s`.
+- `validationInterval`: Leader connection check interval. Defaults to `2s`.
+
+See [High Availability](./high-availability.md) before deploying replicas. It
+documents multi-host PostgreSQL URLs, scope isolation, health/readiness
+behavior, restart requirements, and the mandatory PostgreSQL fencing caveat.
+
 ## PostgreSQL Output
 
 ```yaml
@@ -255,9 +284,11 @@ The `log` section configures process logs and optional alert-log export.
 
 ## Web Listener
 
-The scraper HTTP listener exposes health only:
+The scraper HTTP listener exposes process health and leadership readiness:
 
 - `/healthz`: returns `ok` when the process is running.
+- `/readyz`: returns HTTP `200` only after this instance is the active scraper;
+  a healthy HA standby returns HTTP `503`.
 - `/`: small landing page pointing to health.
 
 It does not expose Oracle metrics on `/metrics`.

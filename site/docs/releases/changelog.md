@@ -9,6 +9,15 @@ List of upcoming and historic changes to the scraper.
 
 ### Next, TBD
 
+- Add default-enabled active/standby operation using PostgreSQL advisory-lock
+  leader election with human-readable scopes, writable-primary validation,
+  multi-host connection support, and distinct `/healthz` and `/readyz`
+  endpoints. Standbys avoid Oracle and write-pool initialization; leaders exit
+  non-zero on leadership loss for clean service-manager restart. Document that
+  PostgreSQL quorum and fencing remain mandatory to prevent split brain.
+- Run two Harry instances in the Docker Compose test stack, expose their
+  liveness/readiness endpoints on ports `9161` and `9162`, and document a
+  repeatable kill, takeover, and standby-rejoin test.
 - Assign ownership of Harry and its original components to Jorge Holgado, with
   commercial support provided under the OneClickDBA brand.
 - Add signed-tag GitHub Releases with checksummed `go-ora` and `godror`

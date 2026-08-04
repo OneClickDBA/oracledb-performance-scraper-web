@@ -230,12 +230,17 @@ Useful checks:
 ```bash
 journalctl -u harry-scraper -f
 curl http://127.0.0.1:9161/healthz
+curl http://127.0.0.1:9161/readyz
 ```
+
+`/healthz` confirms that the process is alive. `/readyz` confirms that this
+instance owns HA leadership and has started collection. A standby intentionally
+returns HTTP `503` from `/readyz`.
 
 ## Docker Compose
 
 The `docker-compose/` stack is intended for local testing only. It starts test
-Oracle databases, PostgreSQL, Grafana, and the scraper service.
+Oracle databases, PostgreSQL, Grafana, and two Harry instances in one HA scope.
 
 ```bash
 DB_PASSWORD='<choose-a-local-demo-password>' make docker-compose-up
@@ -246,12 +251,50 @@ expose the Compose stack on a shared or public host.
 
 When the stack is running:
 
-- Scraper health: [http://localhost:9161/healthz](http://localhost:9161/healthz)
+- First Harry instance: [http://localhost:9161/healthz](http://localhost:9161/healthz)
+- Second Harry instance: [http://localhost:9162/healthz](http://localhost:9162/healthz)
 - Grafana: [http://localhost:3000](http://localhost:3000)
 - PostgreSQL: exposed according to the Compose file
 
 Grafana is provisioned with the PostgreSQL datasource and the bundled
 dashboards.
+
+Both Harry containers use `highAvailability.scope: default`. Check leadership:
+
+```bash
+curl -s -o /dev/null -w 'harry-scraper: %{http_code}\n' \
+  http://localhost:9161/readyz
+curl -s -o /dev/null -w 'harry-scraper-secondary: %{http_code}\n' \
+  http://localhost:9162/readyz
+```
+
+Exactly one endpoint should return `200`; the standby returns `503`. The
+following test detects and kills the current leader, then waits for the standby
+to take over:
+
+```bash
+if curl -fsS http://localhost:9161/readyz >/dev/null; then
+  leader=harry-scraper
+  standby_port=9162
+else
+  leader=harry-scraper-secondary
+  standby_port=9161
+fi
+
+docker kill "$leader"
+until curl -fsS "http://localhost:${standby_port}/readyz"; do sleep 1; done
+```
+
+Takeover normally occurs after the configured `retryInterval`. The Compose
+scraper services intentionally have no automatic restart policy so `docker
+kill` leaves the old leader down for this test.
+
+Restart the killed container to verify that it rejoins as standby while the new
+leader keeps the advisory lock:
+
+```bash
+docker start "$leader"
+```
 
 ```bash
 make docker-compose-down

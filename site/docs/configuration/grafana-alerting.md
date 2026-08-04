@@ -55,7 +55,8 @@ silence instead of an alert.
 
 Production deployments must use an independent availability check for:
 
-- the scraper process and `/healthz` endpoint;
+- every scraper process and its `/healthz` endpoint;
+- at least one successful `/readyz` endpoint per HA scope;
 - the PostgreSQL service and monitoring database;
 - the Grafana process and HTTP endpoint;
 - the notification path used by Grafana.

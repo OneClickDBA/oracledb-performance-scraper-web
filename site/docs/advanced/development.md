@@ -11,12 +11,14 @@ writes collected samples into PostgreSQL.
 The runtime flow is:
 
 - Parse `--config.file` and expand environment variables.
-- Load database, metric, PostgreSQL output, logging, and web configuration.
-- Load any optional files listed under `metrics.definitions`.
-- Open Oracle connection pools for each configured source database.
+- Load database, metric, HA, PostgreSQL output, logging, and web configuration.
+- Start the lightweight web listener for `/healthz`, `/readyz`, and `/`.
+- Acquire the configured PostgreSQL HA scope on a dedicated connection. A
+  standby stops here and retries without opening Oracle pools.
+- Load any optional files listed under `metrics.definitions` after leadership.
 - Open the PostgreSQL connection pool and run schema migrations when
   `output.postgresql.autoMigrate` is enabled.
-- Start the lightweight web listener for `/healthz` and `/`.
+- Open Oracle connection pools for each configured source database.
 - Start scheduled native collectors for SQL, cached cursor plans, sessions,
   blocking, DAH, and alert logs, plus any configured additional metrics.
 
@@ -27,6 +29,10 @@ collectors write to dedicated tables such as `oracle_sql_samples`,
 
 Grafana dashboards read PostgreSQL directly. The scraper does not expose Oracle
 metrics on `/metrics`.
+
+The leader monitors its dedicated PostgreSQL session independently from the
+write pool. Loss of that session or writable-primary status cancels collection
+and exits non-zero so the surrounding service manager can restart the process.
 
 ## Container Build
 

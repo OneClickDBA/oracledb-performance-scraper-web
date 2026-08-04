@@ -21,7 +21,7 @@ This is not a Prometheus exporter. It does not expose Oracle metrics on `/metric
 - optionally collects additional SQL-derived metrics from TOML or YAML
   definitions,
 - writes those samples to PostgreSQL,
-- exposes a small health endpoint on `/healthz`,
+- exposes process health on `/healthz` and active-leader readiness on `/readyz`,
 - lets Grafana read PostgreSQL directly.
 
 Native performance data uses dedicated PostgreSQL tables. Details such as
